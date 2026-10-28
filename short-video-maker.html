@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="bn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Short Video Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #eceff1;
+        --surface: #ffffff;
+        --surface-2: #f4f6f7;
+        --ink: #1b2025;
+        --muted: #68707a;
+        --line: #d8dde1;
+        --accent: #d63a2a;
+        --accent-dark: #b02a1e;
+        --accent-ink: #ffffff;
+        --good: #1e7d46;
+        --chip: #eef1f3;
+        --shadow: 0 10px 30px rgba(20, 28, 38, 0.10);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101316;
+          --surface: #1a1e22;
+          --surface-2: #22272c;
+          --ink: #eef1f3;
+          --muted: #9aa4ad;
+          --line: #31373d;
+          --accent: #e5533f;
+          --accent-dark: #c93e2c;
+          --chip: #262b30;
+          --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans Bengali", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 400px) 1fr;
+        gap: 22px;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 20px 18px 40px;
+        align-items: start;
+      }
+      /* ---------- control panel ---------- */
+      .panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+      }
+      .card h2 {
+        font-family: "Baloo Da 2", "Noto Sans Bengali", sans-serif;
+        font-size: 19px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card h2 .num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 15px;
+        font-weight: 800;
+        flex: none;
+      }
+      .card .hint { color: var(--muted); font-size: 13.5px; margin: 0 0 12px; }
+      .slot { margin-bottom: 14px; }
+      .slot:last-child { margin-bottom: 0; }
+      .slot-label { font-weight: 600; font-size: 15px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+      .slot-label .meta { color: var(--muted); font-weight: 400; font-size: 12.5px; }
+      .upload-row { display: flex; gap: 8px; align-items: stretch; }
+      .upload-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 10px;
+        border: 1.5px dashed var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+        color: var(--ink);
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        min-height: 48px;
+      }
+      .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+      .upload-btn.has-file { border-style: solid; border-color: var(--good); color: var(--ink); }
+      .upload-btn .fname {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 200px;
+        font-weight: 500;
+        font-size: 13.5px;
+      }
+      .remove-btn {
+        flex: none;
+        width: 48px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--accent);
+        font-size: 18px;
+        cursor: pointer;
+        display: none;
+      }
+      .remove-btn.show { display: block; }
+      input[type="file"] { display: none; }
+      .swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+      .swatch {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        border: 2px solid var(--line);
+        cursor: pointer;
+        padding: 0;
+      }
+      .swatch.sel { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+      .fit-toggle { display: flex; gap: 6px; margin-top: 8px; }
+      .fit-toggle button {
+        flex: 1;
+        padding: 7px 4px;
+        font: inherit;
+        font-size: 13.5px;
+        border: 1px solid var(--line);
+        background: var(--chip);
+        color: var(--muted);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .fit-toggle button.sel { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+      .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+      .slider-row label { font-size: 13.5px; color: var(--muted); flex: none; }
+      .slider-row output { font-size: 13.5px; font-weight: 600; flex: none; min-width: 52px; text-align: right; }
+      input[type="range"] { flex: 1; accent-color: var(--accent); min-width: 0; }
+      .seg { display: flex; gap: 8px; }
+      .seg button {
+        flex: 1;
+        padding: 11px 4px;
+        font: inherit;
+        font-size: 16.5px;
+        font-weight: 700;
+        font-family: "Baloo Da 2", "Noto Sans Bengali", sans-serif;
+        border: 1.5px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .seg button.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .seg button small { display: block; font-size: 11.5px; font-weight: 500; font-family: "Noto Sans Bengali", sans-serif; opacity: 0.85; }
+      .custom-sec { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+      .custom-sec label { font-size: 13.5px; color: var(--muted); flex: none; }
+      .custom-sec input {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        font: inherit;
+        font-size: 15px;
+        border: 1.5px solid var(--line);
+        border-radius: 9px;
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        width: 100%;
+        padding: 14px 12px;
+        font: inherit;
+        font-size: 16.5px;
+        font-weight: 700;
+        border-radius: 11px;
+        border: 1.5px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        cursor: pointer;
+        min-height: 52px;
+      }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .btn.primary:hover:not(:disabled) { background: var(--accent-dark); }
+      .btn .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex: none; }
+      .btn.recording .dot { animation: blink 1s steps(2) infinite; }
+      @keyframes blink { 50% { opacity: 0.15; } }
+      .total-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        font-size: 14.5px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .total-info b { font-variant-numeric: tabular-nums; }
+      .status {
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--muted);
+        min-height: 22px;
+      }
+      .status.err { color: var(--accent); font-weight: 600; }
+      .status.ok { color: var(--good); font-weight: 600; }
+      .progress-wrap { display: none; margin-top: 12px; }
+      .progress-wrap.show { display: block; }
+      .progress-track { height: 10px; border-radius: 6px; background: var(--chip); overflow: hidden; }
+      .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 6px; transition: width 0.25s linear; }
+      .progress-label { font-size: 13.5px; color: var(--muted); margin-top: 6px; text-align: center; }
+      .download-card {
+        display: none;
+        margin-top: 14px;
+        padding: 14px;
+        border: 1.5px solid var(--good);
+        border-radius: 11px;
+        background: var(--surface-2);
+        text-align: center;
+      }
+      .download-card.show { display: block; }
+      .download-card a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--good);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        padding: 12px 22px;
+        border-radius: 10px;
+        margin-top: 8px;
+      }
+      .download-card .dmeta { font-size: 13px; color: var(--muted); }
+      #shareBtn { background: var(--good); border-color: var(--good); color: #fff; }
+      #shareBtn:hover { background: var(--good); }
+      .open-link { display: inline-block; margin-top: 10px; font-weight: 600; font-size: 14.5px; color: var(--good); }
+      .mute-row { display: flex; gap: 6px; margin-top: 8px; }
+      .mute-row button {
+        flex: 1;
+        padding: 7px 4px;
+        font: inherit;
+        font-size: 13.5px;
+        border: 1px solid var(--line);
+        background: var(--chip);
+        color: var(--ink);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      /* ---------- stage (native elements, no canvas redraw) ---------- */
+      .stage-col { position: sticky; top: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+      .stage-wrap {
+        position: relative;
+        width: min(400px, 94vw);
+        aspect-ratio: 9 / 16;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+        background: #000;
+        display: flex;
+        flex-direction: column;
+      }
+      .bgfill {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: none;
+        z-index: 0;
+      }
+      .bgfill.show { display: block; }
+      .band {
+        position: relative;
+        z-index: 1;
+        flex: none;
+        overflow: hidden;
+      }
+      .band img.band-img {
+        width: 100%; height: 100%;
+        display: none;
+      }
+      .band img.band-img.show { display: block; }
+      .bph {
+        position: absolute;
+        inset: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed rgba(255,255,255,0.45);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.9);
+        font-size: 13.5px;
+        font-weight: 600;
+        text-align: center;
+        padding: 4px;
+      }
+      .bph.hide { display: none; }
+      .mid {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+      .half { position: relative; flex: 1; min-width: 0; background: #000; }
+      .half video {
+        width: 100%; height: 100%;
+        display: block;
+        object-fit: cover;
+        background: #000;
+      }
+      /* both right-side copies are stacked in the same half; the standby
+         plays behind the active one (never display:none, which stalls
+         decoding on phones) */
+      #rightVid, #rightVidB { position: absolute; inset: 0; }
+      .vph {
+        position: absolute;
+        inset: 6px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        border: 2px dashed rgba(255,255,255,0.45);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.92);
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        padding: 6px;
+        pointer-events: none;
+      }
+      .vph small { font-weight: 400; font-size: 12px; color: rgba(255,255,255,0.65); }
+      .vph.hide { display: none; }
+      #insertVid {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        background: #000;
+        display: none;
+        z-index: 5;
+      }
+      #insertVid.show { display: block; }
+      .insert-tag {
+        position: absolute;
+        top: 12px; right: 12px;
+        z-index: 6;
+        display: none;
+        background: rgba(0,0,0,0.65);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+      }
+      .insert-tag.show { display: block; }
+      .rec-badge {
+        position: absolute;
+        top: 12px; left: 12px;
+        z-index: 10;
+        display: none;
+        align-items: center;
+        gap: 7px;
+        background: rgba(0,0,0,0.65);
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        line-height: 1.3;
+      }
+      .rec-badge.show { display: inline-flex; }
+      .rec-badge .rdot { width: 10px; height: 10px; border-radius: 50%; background: #ff4438; animation: blink 1s steps(2) infinite; }
+      .stage-bar {
+        width: min(400px, 94vw);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: var(--shadow);
+      }
+      .stage-bar .time { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; white-space: nowrap; }
+      .stage-bar .tlabel { color: var(--muted); font-size: 13px; white-space: nowrap; }
+      .stage-bar .grow { flex: 1; }
+      .mini-btn {
+        padding: 9px 16px;
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 700;
+        border-radius: 9px;
+        border: 1.5px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .mini-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .mini-btn.main { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+      .layout-note { color: var(--muted); font-size: 13.5px; text-align: center; max-width: 400px; margin: 0; }
+      .rec-canvas { position: absolute; left: -20px; top: -20px; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+      @media (max-width: 920px) {
+        .layout { grid-template-columns: 1fr; padding: 14px 12px 34px; }
+        .stage-col { position: static; order: -1; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <!-- ================= controls ================= -->
+      <div class="panel">
+
+        <section class="card">
+          <h2><span class="num">১</span> ব্যাকগ্রাউন্ড</h2>
+          <p class="hint">পুরো ভিডিওর পেছনের রঙ বাছুন, অথবা নিজের ছবি ব্যাকগ্রাউন্ড হিসেবে বসান।</p>
+          <div class="swatches" id="swatches"></div>
+          <div class="slot">
+            <div class="upload-row">
+              <button class="upload-btn" id="bgUploadBtn" type="button">ব্যাকগ্রাউন্ড ছবি আপলোড করুন</button>
+              <button class="remove-btn" id="bgRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="bgFile" accept="image/*" />
+          </div>
+        </section>
+
+        <section class="card">
+          <h2><span class="num">২</span> উপরে ও নিচে ব্যানার ছবি</h2>
+          <p class="hint">ভিডিওর উপরে পাতলা ব্যানারে একটা ছবি, নিচের ব্যানারে আরেকটা ছবি বসান। ব্যানার পাতলা রাখলে মাঝের ভিডিও লম্বা হবে।</p>
+          <div class="slot">
+            <div class="slot-label">উপরের ব্যানার ছবি</div>
+            <div class="upload-row">
+              <button class="upload-btn" id="topUploadBtn" type="button">ছবি বাছুন</button>
+              <button class="remove-btn" id="topRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="topFile" accept="image/*" />
+            <div class="fit-toggle" data-fit="top">
+              <button type="button" data-val="cover" class="sel">ভরাট (ক্রপ হবে)</button>
+              <button type="button" data-val="contain">পুরো ছবি দেখাবে</button>
+            </div>
+            <div class="slider-row">
+              <label for="topH">উচ্চতা</label>
+              <input type="range" id="topH" min="80" max="420" step="10" value="150" />
+              <output id="topHOut">১৫০ px</output>
+            </div>
+          </div>
+          <div class="slot">
+            <div class="slot-label">নিচের ব্যানার ছবি</div>
+            <div class="upload-row">
+              <button class="upload-btn" id="botUploadBtn" type="button">ছবি বাছুন</button>
+              <button class="remove-btn" id="botRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="botFile" accept="image/*" />
+            <div class="fit-toggle" data-fit="bot">
+              <button type="button" data-val="cover" class="sel">ভরাট (ক্রপ হবে)</button>
+              <button type="button" data-val="contain">পুরো ছবি দেখাবে</button>
+            </div>
+            <div class="slider-row">
+              <label for="botH">উচ্চতা</label>
+              <input type="range" id="botH" min="80" max="420" step="10" value="150" />
+              <output id="botHOut">১৫০ px</output>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2><span class="num">৩</span> দুই পাশে ভিডিও</h2>
+          <p class="hint">মাঝখানে গায়ে গায়ে লাগানো বামে একটা ভিডিও, ডানে আরেকটা। <b>বাম ভিডিওটাই মূল</b> — তৈরি ভিডিওর লেন্থ হবে বাম ভিডিওর লেন্থ। ডান ভিডিও ছোট হলে লুপ হয়ে বাম ভিডিও শেষ না হওয়া পর্যন্ত চলবে; ডান ভিডিও লম্বা হলে বাম ভিডিও শেষ হলেই কেটে যাবে।</p>
+          <div class="slot">
+            <div class="slot-label">বাম পাশের ভিডিও (মূল) <span class="meta" id="leftMeta"></span></div>
+            <div class="upload-row">
+              <button class="upload-btn" id="leftUploadBtn" type="button">ভিডিও বাছুন</button>
+              <button class="remove-btn" id="leftRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="leftFile" accept="video/*" />
+            <div class="mute-row">
+              <button type="button" id="leftMuteBtn">শব্দ: চালু</button>
+            </div>
+          </div>
+          <div class="slot">
+            <div class="slot-label">ডান পাশের ভিডিও (লুপ হবে) <span class="meta" id="rightMeta"></span></div>
+            <div class="upload-row">
+              <button class="upload-btn" id="rightUploadBtn" type="button">ভিডিও বাছুন</button>
+              <button class="remove-btn" id="rightRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="rightFile" accept="video/*" />
+            <div class="mute-row">
+              <button type="button" id="rightMuteBtn">শব্দ: চালু</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2><span class="num">৪</span> ইনসার্ট ভিডিও (ফুল স্ক্রিন)</h2>
+          <p class="hint">তিন নম্বর ভিডিও — চাইলে বসান, না চাইলে খালি রাখুন। নির্দিষ্ট সময়ে এলে বাম-ডান ভিডিও থেমে যাবে, এই ভিডিওটা ব্যানারসহ পুরো স্ক্রিন জুড়ে চলবে (শব্দও শুধু এটারই বাজবে)। শেষ হলে বাম-ডান ভিডিও ঠিক যেখান থেকে থেমেছিল, সেখান থেকে আবার চলবে।</p>
+          <div class="slot">
+            <div class="slot-label">ইনসার্ট ভিডিও <span class="meta" id="insertMeta"></span></div>
+            <div class="upload-row">
+              <button class="upload-btn" id="insertUploadBtn" type="button">ভিডিও বাছুন</button>
+              <button class="remove-btn" id="insertRemoveBtn" type="button" title="সরান">✕</button>
+            </div>
+            <input type="file" id="insertFile" accept="video/*" />
+            <div class="mute-row">
+              <button type="button" id="insertMuteBtn">শব্দ: চালু</button>
+            </div>
+          </div>
+          <div class="slot">
+            <div class="slot-label">কত সেকেন্ডে ইনসার্ট শুরু হবে</div>
+            <div class="seg" id="insertSeg">
+              <button type="button" data-sec="20" class="sel">২০<small>সেকেন্ডে</small></button>
+              <button type="button" data-sec="30">৩০<small>সেকেন্ডে</small></button>
+              <button type="button" data-sec="40">৪০<small>সেকেন্ডে</small></button>
+            </div>
+            <div class="custom-sec">
+              <label for="insertCustom">অথবা নিজে লিখুন</label>
+              <input type="number" id="insertCustom" min="0" step="1" placeholder="সেকেন্ড (যেমন ২৫)" />
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2><span class="num">৫</span> ভিডিও তৈরি করুন</h2>
+          <p class="hint">মোট লেন্থ = বাম ভিডিওর লেন্থ + ইনসার্ট ভিডিওর লেন্থ (ইনসার্ট দিলে)। রেকর্ড চাপলে সবকিছু শুরু থেকে চলবে আর পুরো সাজসহ একটা ভিডিও ফাইল তৈরি হবে।</p>
+          <div class="total-info" id="totalInfo">
+            <span>বাম ভিডিও: <b id="tLeft">—</b></span>
+            <span>ইনসার্ট: <b id="tInsert">—</b></span>
+            <span>মোট: <b id="tTotal">—</b></span>
+          </div>
+          <button class="btn primary" id="recordBtn" type="button"><span class="dot"></span><span id="recordLabel">রেকর্ড শুরু করুন</span></button>
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-label" id="progressLabel">রেকর্ড হচ্ছে…</div>
+          </div>
+          <div class="status" id="status">আগে বাম পাশের ভিডিও আপলোড করুন — বাম ভিডিওর লেন্থই হবে তৈরি ভিডিওর মূল লেন্থ।</div>
+          <div class="download-card" id="downloadCard">
+            <div style="font-weight:700; font-size:16.5px;">আপনার ভিডিও তৈরি!</div>
+            <div class="dmeta" id="downloadMeta"></div>
+            <video id="resultVid" controls playsinline style="width:100%; max-height:320px; border-radius:10px; margin-top:10px; background:#000; display:block;"></video>
+            <button class="btn" id="shareBtn" type="button" style="display:none; margin-top:10px;">ভিডিও সেভ করুন (শেয়ার)</button>
+            <div><a id="downloadLink" href="#" download>⬇ ভিডিও ডাউনলোড করুন</a></div>
+            <div><a class="open-link" id="openLink" href="#" target="_blank" rel="noopener">▶ ভিডিওটা আলাদা পেজে খুলুন</a></div>
+            <div class="dmeta" id="saveHelp" style="margin-top:8px;">ফোনে সেভ করতে সবুজ "ভিডিও সেভ করুন" বাটনটা ব্যবহার করুন — শেয়ার মেনু থেকে গ্যালারি বা Files-এ সেভ করা যাবে।</div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ================= stage (native video elements) ================= -->
+      <div class="stage-col">
+        <div class="stage-wrap" id="stageWrap">
+          <img class="bgfill" id="bgFill" alt="" />
+          <div class="band" id="topBand">
+            <img class="band-img" id="topImgEl" alt="উপরের ব্যানার ছবি" />
+            <div class="bph" id="topPh">উপরের ব্যানার ছবি</div>
+          </div>
+          <div class="mid">
+            <div class="half">
+              <video id="leftVid" playsinline preload="auto"></video>
+              <div class="vph" id="leftPh">বাম ভিডিও<small>ভিডিও আপলোড করুন</small></div>
+            </div>
+            <div class="half">
+              <video id="rightVid" playsinline preload="auto"></video>
+              <video id="rightVidB" playsinline preload="auto" style="position:absolute; inset:0;"></video>
+              <div class="vph" id="rightPh">ডান ভিডিও<small>ভিডিও আপলোড করুন</small></div>
+            </div>
+          </div>
+          <div class="band" id="botBand">
+            <img class="band-img" id="botImgEl" alt="নিচের ব্যানার ছবি" />
+            <div class="bph" id="botPh">নিচের ব্যানার ছবি</div>
+          </div>
+          <video id="insertVid" playsinline preload="auto"></video>
+          <div class="insert-tag" id="insertTag">ইনসার্ট ভিডিও চলছে</div>
+          <div class="rec-badge" id="recBadge"><span class="rdot"></span><span id="recBadgeText">রেকর্ড হচ্ছে</span></div>
+        </div>
+        <div class="stage-bar">
+          <button class="mini-btn main" id="previewBtn" type="button">▶ প্রিভিউ চালান</button>
+          <span class="tlabel">সময়</span>
+          <span class="time" id="timeLabel">০:০০ / ০:০০</span>
+          <span class="grow"></span>
+          <span class="tlabel">9:16 · 720×1280</span>
+        </div>
+        <p class="layout-note">উপরে ব্যানার ছবি · মাঝে গায়ে গায়ে বামে-ডানে দুই ভিডিও · নিচে ব্যানার ছবি — আর মাঝপথে চাইলে ফুল স্ক্রিন ইনসার্ট ভিডিও। প্রিভিউতে যেমন দেখছেন, তৈরি ভিডিওটাও ঠিক তেমনই হবে।</p>
+      </div>
+    </main>
+
+    <!-- recording canvas: runs only while recording/exporting -->
+    <canvas id="recCanvas" class="rec-canvas" width="720" height="1280"></canvas>
+
+    <script>
+      "use strict";
+      var W = 720, H = 1280;
+      var BN = "০১২৩৪৫৬৭৮৯";
+      function toBn(n) { return String(n).replace(/[0-9]/g, function (d) { return BN[+d]; }); }
+      function fmtTime(s) {
+        if (!isFinite(s) || s == null) return "—";
+        s = Math.max(0, Math.floor(s));
+        return toBn(Math.floor(s / 60)) + ":" + toBn(String(s % 60).padStart(2, "0"));
+      }
+      function $(id) { return document.getElementById(id); }
+
+      var leftVid = $("leftVid"), rightVid = $("rightVid"), rightVidB = $("rightVidB"), insertVid = $("insertVid");
+      var allVids = [leftVid, rightVid, rightVidB, insertVid];
+      /* Seamless right-side loop: two stacked copies of the right video.
+         BOTH keep playing the whole time — the standby runs muted behind
+         the active one, so its decoder stays warm and it already has
+         playback history. About 0.3s before the active copy ends, the
+         standby is restarted from 0; when the active copy ends, the two
+         swap visibility. No cold, never-played element ever has to start
+         mid-playback — that cold start (a hidden element whose play()
+         gets blocked/stalls on phones) is what froze the right side. */
+      var rightActive = rightVid, rightStandby = rightVidB;
+      rightVid.loop = true;
+      rightVidB.loop = true;
+      function paintRightStack() {
+        rightActive.style.zIndex = "2";
+        rightStandby.style.zIndex = "1";
+      }
+      paintRightStack();
+
+      var state = {
+        bgColor: "#17202a",
+        bgImg: null,
+        topImg: null, botImg: null,
+        topFit: "cover", botFit: "cover",
+        topH: 150, botH: 150,
+        insertStart: 20
+      };
+      var userMute = { left: false, right: false, insert: false };
+
+      var engine = {
+        playing: false,
+        mode: null,          // 'preview' | 'record'
+        phase: "split",      // 'split' | 'insert'
+        insertDone: false,
+        ppArmed: false,
+        effStart: 0,
+        raf: 0,
+        wallStart: 0
+      };
+
+      /* ---------------- fit helpers (canvas) ---------------- */
+      function fitRect(iw, ih, box, mode) {
+        if (!iw || !ih) return box;
+        var s = mode === "cover" ? Math.max(box.w / iw, box.h / ih) : Math.min(box.w / iw, box.h / ih);
+        var w = iw * s, h = ih * s;
+        return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w: w, h: h };
+      }
+
+      /* ---------------- durations / totals ---------------- */
+      function durOf(vid) { return (vid.src && isFinite(vid.duration) && vid.duration > 0) ? vid.duration : 0; }
+      function hasInsert() { return !!insertVid.src; }
+      function totalDur() { return durOf(leftVid) + (hasInsert() ? durOf(insertVid) : 0); }
+      function updateTotals() {
+        var ld = durOf(leftVid), idd = hasInsert() ? durOf(insertVid) : 0, tot = ld + idd;
+        $("tLeft").textContent = ld ? fmtTime(ld) : "—";
+        $("tInsert").textContent = hasInsert() ? (idd ? fmtTime(idd) : "—") : "নেই";
+        $("tTotal").textContent = ld ? fmtTime(tot) : "—";
+        $("recordLabel").textContent = ld ? ("রেকর্ড শুরু করুন — মোট " + fmtTime(tot)) : "রেকর্ড শুরু করুন";
+        if (!engine.playing) $("timeLabel").textContent = "০:০০ / " + (ld ? fmtTime(tot) : "০:০০");
+      }
+      function virtualTime() {
+        if (engine.phase === "insert") return engine.effStart + (insertVid.currentTime || 0);
+        var t = leftVid.currentTime || 0;
+        if (engine.insertDone) t += durOf(insertVid);
+        return t;
+      }
+
+      /* ---------------- uploads ---------------- */
+      var urlStore = {};
+      function wireUpload(fileId, btnId, removeId, onLoad, onClear) {
+        var file = $(fileId), btn = $(btnId), rm = $(removeId);
+        btn.addEventListener("click", function () { file.click(); });
+        file.addEventListener("change", function () {
+          if (!file.files || !file.files[0]) return;
+          var f = file.files[0];
+          if (urlStore[fileId]) URL.revokeObjectURL(urlStore[fileId]);
+          var url = URL.createObjectURL(f);
+          urlStore[fileId] = url;
+          btn.classList.add("has-file");
+          btn.innerHTML = "";
+          var sp = document.createElement("span");
+          sp.className = "fname";
+          sp.textContent = f.name;
+          btn.appendChild(sp);
+          rm.classList.add("show");
+          onLoad(url, f);
+          file.value = "";
+        });
+        rm.addEventListener("click", function () {
+          if (urlStore[fileId]) { URL.revokeObjectURL(urlStore[fileId]); delete urlStore[fileId]; }
+          btn.classList.remove("has-file");
+          btn.textContent = btn.getAttribute("data-label");
+          rm.classList.remove("show");
+          onClear();
+        });
+        btn.setAttribute("data-label", btn.textContent);
+      }
+      function loadImage(url, cb) {
+        var img = new Image();
+        img.onload = function () { cb(img); };
+        img.src = url;
+      }
+      wireUpload("bgFile", "bgUploadBtn", "bgRemoveBtn",
+        function (url) {
+          loadImage(url, function (img) { state.bgImg = img; });
+          $("bgFill").src = url;
+          $("bgFill").classList.add("show");
+        },
+        function () {
+          state.bgImg = null;
+          $("bgFill").removeAttribute("src");
+          $("bgFill").classList.remove("show");
+        });
+      function wireBand(fileId, btnId, removeId, imgElId, phId, key) {
+        wireUpload(fileId, btnId, removeId,
+          function (url) {
+            loadImage(url, function (img) { state[key] = img; });
+            var el = $(imgElId);
+            el.src = url;
+            el.classList.add("show");
+            $(phId).classList.add("hide");
+          },
+          function () {
+            state[key] = null;
+            var el = $(imgElId);
+            el.removeAttribute("src");
+            el.classList.remove("show");
+            $(phId).classList.remove("hide");
+          });
+      }
+      wireBand("topFile", "topUploadBtn", "topRemoveBtn", "topImgEl", "topPh", "topImg");
+      wireBand("botFile", "botUploadBtn", "botRemoveBtn", "botImgEl", "botPh", "botImg");
+
+      function wireVideo(fileId, btnId, removeId, vid, metaId, phId) {
+        wireUpload(fileId, btnId, removeId,
+          function (url) {
+            vid.src = url;
+            vid.load();
+            if (phId) $(phId).classList.add("hide");
+            updateTotals();
+            updateRecordState();
+          },
+          function () {
+            vid.removeAttribute("src");
+            vid.load();
+            $(metaId).textContent = "";
+            if (phId) $(phId).classList.remove("hide");
+            updateTotals();
+            updateRecordState();
+          });
+        vid.addEventListener("loadedmetadata", function () {
+          if (vid.duration && isFinite(vid.duration)) {
+            $(metaId).textContent = "সময়: " + fmtTime(vid.duration);
+          }
+          updateTotals();
+        });
+      }
+      wireVideo("leftFile", "leftUploadBtn", "leftRemoveBtn", leftVid, "leftMeta", "leftPh");
+      wireUpload("rightFile", "rightUploadBtn", "rightRemoveBtn",
+        function (url) {
+          [rightVid, rightVidB].forEach(function (v) { v.src = url; v.load(); });
+          $("rightPh").classList.add("hide");
+          updateTotals();
+          updateRecordState();
+        },
+        function () {
+          [rightVid, rightVidB].forEach(function (v) { v.removeAttribute("src"); v.load(); });
+          $("rightMeta").textContent = "";
+          $("rightPh").classList.remove("hide");
+          updateTotals();
+          updateRecordState();
+        });
+      rightVid.addEventListener("loadedmetadata", function () {
+        if (rightVid.duration && isFinite(rightVid.duration)) {
+          $("rightMeta").textContent = "সময়: " + fmtTime(rightVid.duration);
+        }
+        updateTotals();
+      });
+      wireVideo("insertFile", "insertUploadBtn", "insertRemoveBtn", insertVid, "insertMeta", null);
+
+      /* ---------------- background swatches ---------------- */
+      var colors = [
+        ["#17202a", "গাঢ় ধূসর"],
+        ["#101216", "কালো"],
+        ["#7c2128", "গাঢ় লাল"],
+        ["#14532d", "গাঢ় সবুজ"],
+        ["#1e3a5f", "নেভি নীল"],
+        ["#8a5a12", "সোনালি বাদামি"],
+        ["#e8e6df", "হালকা"]
+      ];
+      var swWrap = $("swatches");
+      colors.forEach(function (c, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "swatch" + (i === 0 ? " sel" : "");
+        b.style.background = c[0];
+        b.title = c[1];
+        b.addEventListener("click", function () {
+          state.bgColor = c[0];
+          $("stageWrap").style.background = c[0];
+          swWrap.querySelectorAll(".swatch").forEach(function (s) { s.classList.remove("sel"); });
+          b.classList.add("sel");
+        });
+        swWrap.appendChild(b);
+      });
+      $("stageWrap").style.background = state.bgColor;
+
+      /* ---------------- fit toggles + band heights ---------------- */
+      document.querySelectorAll(".fit-toggle").forEach(function (tg) {
+        var which = tg.getAttribute("data-fit");
+        var key = which + "Fit";
+        var imgEl = which === "top" ? $("topImgEl") : $("botImgEl");
+        tg.querySelectorAll("button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            state[key] = b.getAttribute("data-val");
+            imgEl.style.objectFit = state[key];
+            tg.querySelectorAll("button").forEach(function (x) { x.classList.remove("sel"); });
+            b.classList.add("sel");
+          });
+        });
+      });
+      $("topImgEl").style.objectFit = "cover";
+      $("botImgEl").style.objectFit = "cover";
+      function applyBandHeights() {
+        $("topBand").style.height = (state.topH / H * 100) + "%";
+        $("botBand").style.height = (state.botH / H * 100) + "%";
+      }
+      function wireSlider(id, outId, key) {
+        var sl = $(id);
+        sl.addEventListener("input", function () {
+          state[key] = +sl.value;
+          $(outId).textContent = toBn(sl.value) + " px";
+          applyBandHeights();
+        });
+      }
+      wireSlider("topH", "topHOut", "topH");
+      wireSlider("botH", "botHOut", "botH");
+      applyBandHeights();
+
+      /* ---------------- insert start time ---------------- */
+      $("insertSeg").querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          state.insertStart = +b.getAttribute("data-sec");
+          $("insertCustom").value = "";
+          $("insertSeg").querySelectorAll("button").forEach(function (x) { x.classList.remove("sel"); });
+          b.classList.add("sel");
+        });
+      });
+      $("insertCustom").addEventListener("input", function () {
+        var v = parseFloat($("insertCustom").value);
+        if (isFinite(v) && v >= 0) {
+          state.insertStart = v;
+          $("insertSeg").querySelectorAll("button").forEach(function (x) { x.classList.remove("sel"); });
+        }
+      });
+
+      /* ---------------- mute toggles ---------------- */
+      function applyAudio() {
+        leftVid.muted = userMute.left || (engine.phase === "insert");
+        rightActive.muted = userMute.right || (engine.phase === "insert");
+        rightStandby.muted = true;
+        insertVid.muted = userMute.insert;
+      }
+      function wireMute(btnId, key) {
+        $(btnId).addEventListener("click", function () {
+          userMute[key] = !userMute[key];
+          $(btnId).textContent = "শব্দ: " + (userMute[key] ? "বন্ধ" : "চালু");
+          applyAudio();
+        });
+      }
+      wireMute("leftMuteBtn", "left");
+      wireMute("rightMuteBtn", "right");
+      wireMute("insertMuteBtn", "insert");
+      applyAudio();
+
+      /* ---------------- status / record button state ---------------- */
+      function setStatus(msg, kind) {
+        var s = $("status");
+        s.textContent = msg;
+        s.className = "status" + (kind ? " " + kind : "");
+      }
+      function updateRecordState() {
+        var has = !!leftVid.src;
+        $("recordBtn").disabled = !has || engine.playing;
+        if (has && !engine.playing && !state._doneOnce) {
+          setStatus("সব ঠিক আছে — প্রিভিউ দেখুন, তারপর রেকর্ড বাটনে চাপ দিলেই ভিডিও তৈরি শুরু হবে।", "");
+        }
+      }
+
+      /* ---------------- playback engine (preview + record share it) ---------------- */
+      function playVid(v) { if (v.src) { var p = v.play(); if (p) p.catch(function () {}); } }
+      function seekToStart(vid) {
+        return new Promise(function (res) {
+          if (!vid.src) { res(); return; }
+          var done = false;
+          function fin() { if (!done) { done = true; res(); } }
+          vid.addEventListener("seeked", fin, { once: true });
+          try { vid.currentTime = 0; } catch (e) { fin(); }
+          setTimeout(fin, 600);
+        });
+      }
+
+      function startPlayback(mode) {
+        engine.playing = true;
+        engine.mode = mode;
+        engine.phase = "split";
+        engine.insertDone = false;
+        var ld = durOf(leftVid);
+        engine.effStart = hasInsert() ? Math.min(state.insertStart, Math.max(0, ld - 0.25)) : 0;
+        if (hasInsert() && Math.abs(engine.effStart - state.insertStart) > 0.01) {
+          setStatus("ইনসার্ট শুরুর সময়টা বাম ভিডিওর লেন্থের ভেতরে ঠিক করে দেওয়া হয়েছে (" + fmtTime(engine.effStart) + ")।", "");
+        }
+        insertVid.classList.remove("show");
+        $("insertTag").classList.remove("show");
+        rightActive = rightVid; rightStandby = rightVidB;
+        engine.ppArmed = false;
+        paintRightStack();
+        applyAudio();
+        if (actx && actx.state === "suspended") actx.resume();
+        Promise.all([seekToStart(leftVid), seekToStart(rightVid), seekToStart(rightVidB), seekToStart(insertVid)]).then(function () {
+          if (!engine.playing) return;
+          engine.wallStart = performance.now();
+          playVid(leftVid);
+          playVid(rightActive);
+          playVid(rightStandby);
+          engine.raf = requestAnimationFrame(tick);
+        });
+      }
+
+      function swapRight() {
+        var cur = rightActive, nxt = rightStandby;
+        rightActive = nxt;
+        rightStandby = cur;
+        engine.ppArmed = false;
+        paintRightStack();
+        applyAudio();
+        /* the standby was restarted ~0.3s ago and should already be
+           playing near 0; if anything stalled it, restart it now as a
+           fallback so the right side never sits on a frozen frame */
+        if (nxt.paused || nxt.ended || nxt.currentTime > 0.6) {
+          try { nxt.currentTime = 0; } catch (e) {}
+        }
+        playVid(nxt);
+        /* keep the old copy warm: restart it muted behind the new
+           active so it is ready for the next loop cycle */
+        try { cur.currentTime = 0; } catch (e) {}
+        playVid(cur);
+      }
+      function tick() {
+        if (!engine.playing) return;
+        if (engine.phase === "split" && hasInsert() && !engine.insertDone &&
+            durOf(leftVid) > 0 && leftVid.currentTime >= engine.effStart) {
+          enterInsert();
+        }
+        if (engine.phase === "split" && rightVid.src) {
+          var rd = durOf(rightActive);
+          if (rd > 0.6 && !rightActive.paused) {
+            var remain = rd - rightActive.currentTime;
+            if (!engine.ppArmed && remain <= 0.30 && remain > 0.05) {
+              /* warm standby: restart it now, while it is already
+                 playing, so at the swap it is ~0.3s in and moving */
+              try { rightStandby.currentTime = 0; } catch (e) {}
+              playVid(rightStandby);
+              engine.ppArmed = true;
+            }
+            if (remain <= 0.04) swapRight();
+          }
+        }
+        var vt = virtualTime(), tot = totalDur();
+        $("timeLabel").textContent = fmtTime(vt) + " / " + fmtTime(tot);
+        if (engine.mode === "record") {
+          drawFrame();
+          var pct = tot > 0 ? Math.min(100, (vt / tot) * 100) : 0;
+          $("progressFill").style.width = pct + "%";
+          $("progressLabel").textContent = "রেকর্ড হচ্ছে… " + fmtTime(vt) + " / " + fmtTime(tot);
+          $("recBadgeText").textContent = "রেকর্ড হচ্ছে " + fmtTime(vt);
+          if ((performance.now() - engine.wallStart) / 1000 > tot + 15) { completePlayback(); return; }
+        }
+        engine.raf = requestAnimationFrame(tick);
+      }
+
+      function enterInsert() {
+        engine.phase = "insert";
+        leftVid.pause();
+        rightActive.pause();
+        rightStandby.pause();
+        insertVid.classList.add("show");
+        $("insertTag").classList.add("show");
+        applyAudio();
+        try { insertVid.currentTime = 0; } catch (e) {}
+        playVid(insertVid);
+      }
+      function exitInsert() {
+        engine.phase = "split";
+        engine.insertDone = true;
+        insertVid.classList.remove("show");
+        $("insertTag").classList.remove("show");
+        applyAudio();
+        playVid(leftVid);
+        playVid(rightActive);
+        playVid(rightStandby);
+      }
+      insertVid.addEventListener("ended", function () {
+        if (engine.playing && engine.phase === "insert") exitInsert();
+      });
+      leftVid.addEventListener("ended", function () {
+        if (engine.playing && engine.phase === "split") completePlayback();
+      });
+
+      function stopEngineUI() {
+        engine.playing = false;
+        if (engine.raf) cancelAnimationFrame(engine.raf);
+        engine.raf = 0;
+        allVids.forEach(function (v) { v.pause(); });
+        insertVid.classList.remove("show");
+        $("insertTag").classList.remove("show");
+        engine.phase = "split";
+        applyAudio();
+        $("previewBtn").textContent = "▶ প্রিভিউ চালান";
+        $("previewBtn").disabled = false;
+      }
+      function resetPositions() {
+        allVids.forEach(function (v) { try { v.currentTime = 0; } catch (e) {} });
+        rightActive = rightVid; rightStandby = rightVidB;
+        engine.ppArmed = false;
+        paintRightStack();
+        applyAudio();
+        var tot = totalDur();
+        $("timeLabel").textContent = "০:০০ / " + (tot ? fmtTime(tot) : "০:০০");
+      }
+      function completePlayback() {
+        var wasRecord = engine.mode === "record";
+        stopEngineUI();
+        if (wasRecord) {
+          stopRecorder();
+        } else {
+          resetPositions();
+          updateRecordState();
+        }
+      }
+
+      /* ---------------- preview button ---------------- */
+      $("previewBtn").addEventListener("click", function () {
+        if (engine.playing) {
+          if (engine.mode === "preview") { stopEngineUI(); resetPositions(); updateRecordState(); }
+          return;
+        }
+        if (!leftVid.src) { setStatus("প্রিভিউ দেখতে আগে বাম পাশের (মূল) ভিডিও আপলোড করুন।", "err"); return; }
+        $("downloadCard").classList.remove("show");
+        setStatus("", "");
+        $("previewBtn").textContent = "⏸ প্রিভিউ থামান";
+        startPlayback("preview");
+      });
+
+      /* ---------------- recording (canvas runs only here) ---------------- */
+      var recCanvas = $("recCanvas"), rctx = recCanvas.getContext("2d");
+      var actx = null, audioDest = null;
+      function wireAudio(vid) {
+        if (vid._wired || !vid.src) return;
+        try {
+          if (!actx) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            actx = new AC();
+            audioDest = actx.createMediaStreamDestination();
+          }
+          var src = actx.createMediaElementSource(vid);
+          src.connect(audioDest);
+          src.connect(actx.destination);
+          vid._wired = true;
+        } catch (e) { /* audio unavailable — record video only */ }
+      }
+      function pickMime() {
+        var list = [
+          "video/mp4;codecs=avc1.640028,mp4a.40.2",
+          "video/mp4",
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm"
+        ];
+        for (var i = 0; i < list.length; i++) {
+          if (window.MediaRecorder && MediaRecorder.isTypeSupported(list[i])) return list[i];
+        }
+        return "";
+      }
+      function drawBandCanvas(img, box, fit) {
+        rctx.save();
+        rctx.beginPath();
+        rctx.rect(box.x, box.y, box.w, box.h);
+        rctx.clip();
+        if (fit === "contain") {
+          rctx.fillStyle = "rgba(0,0,0,0.30)";
+          rctx.fillRect(box.x, box.y, box.w, box.h);
+        }
+        if (img && img.naturalWidth) {
+          var r = fitRect(img.naturalWidth, img.naturalHeight, box, fit);
+          rctx.drawImage(img, r.x, r.y, r.w, r.h);
+        }
+        rctx.restore();
+      }
+      function drawVidCanvas(vid, box) {
+        rctx.save();
+        rctx.beginPath();
+        rctx.rect(box.x, box.y, box.w, box.h);
+        rctx.clip();
+        rctx.fillStyle = "#000";
+        rctx.fillRect(box.x, box.y, box.w, box.h);
+        if (vid.src && vid.readyState >= 2 && vid.videoWidth) {
+          var r = fitRect(vid.videoWidth, vid.videoHeight, box, "cover");
+          rctx.drawImage(vid, r.x, r.y, r.w, r.h);
+        }
+        rctx.restore();
+      }
+      function drawFrame() {
+        rctx.fillStyle = state.bgColor;
+        rctx.fillRect(0, 0, W, H);
+        if (state.bgImg && state.bgImg.naturalWidth) {
+          var br = fitRect(state.bgImg.naturalWidth, state.bgImg.naturalHeight, { x: 0, y: 0, w: W, h: H }, "cover");
+          rctx.drawImage(state.bgImg, br.x, br.y, br.w, br.h);
+        }
+        if (engine.phase === "insert") {
+          drawVidCanvas(insertVid, { x: 0, y: 0, w: W, h: H });
+          return;
+        }
+        drawBandCanvas(state.topImg, { x: 0, y: 0, w: W, h: state.topH }, state.topFit);
+        drawBandCanvas(state.botImg, { x: 0, y: H - state.botH, w: W, h: state.botH }, state.botFit);
+        var midH = H - state.topH - state.botH;
+        drawVidCanvas(leftVid, { x: 0, y: state.topH, w: W / 2, h: midH });
+        drawVidCanvas(rightActive, { x: W / 2, y: state.topH, w: W / 2, h: midH });
+      }
+
+      var recorder = null, chunks = [], downloadURL = null;
+      var wakeLock = null;
+      function keepAwake() {
+        if (navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request("screen").then(function (w) { wakeLock = w; }).catch(function () {});
+        }
+      }
+      function releaseAwake() {
+        if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
+      }
+      $("recordBtn").addEventListener("click", function () {
+        if (engine.playing) return;
+        if (!window.MediaRecorder || !recCanvas.captureStream) {
+          setStatus("দুঃখিত — এই ব্রাউজারে ভিডিও রেকর্ড সাপোর্ট নেই। Chrome বা Edge ব্রাউজারে খুলে চেষ্টা করুন।", "err");
+          return;
+        }
+        if (!leftVid.src) {
+          setStatus("আগে বাম পাশের (মূল) ভিডিও আপলোড করুন।", "err");
+          return;
+        }
+        startRecording();
+      });
+
+      function startRecording() {
+        $("recordBtn").disabled = true;
+        $("recordBtn").classList.add("recording");
+        $("recordLabel").textContent = "রেকর্ড হচ্ছে…";
+        $("previewBtn").disabled = true;
+        $("downloadCard").classList.remove("show");
+        setStatus("রেকর্ড হচ্ছে — এই সময়ে পেজটা ছেড়ে যাবেন না।", "");
+        $("progressWrap").classList.add("show");
+        $("recBadge").classList.add("show");
+
+        wireAudio(leftVid); wireAudio(rightVid); wireAudio(rightVidB); wireAudio(insertVid);
+        if (actx && actx.state === "suspended") actx.resume();
+        keepAwake();
+
+        var stream = recCanvas.captureStream(30);
+        var tracks = stream.getVideoTracks().slice();
+        if (audioDest && audioDest.stream.getAudioTracks().length) {
+          tracks = tracks.concat(audioDest.stream.getAudioTracks());
+        }
+        var mime = pickMime();
+        try {
+          recorder = new MediaRecorder(new MediaStream(tracks), {
+            mimeType: mime || undefined,
+            videoBitsPerSecond: 3000000,
+            audioBitsPerSecond: 128000
+          });
+        } catch (e) {
+          try {
+            recorder = new MediaRecorder(new MediaStream(tracks), { videoBitsPerSecond: 3000000 });
+          } catch (e2) {
+            recorder = new MediaRecorder(new MediaStream(tracks));
+          }
+        }
+        chunks = [];
+        recorder.ondataavailable = function (ev) { if (ev.data && ev.data.size) chunks.push(ev.data); };
+        recorder.onstop = finishRecording;
+        drawFrame();
+        recorder.start(250);
+        startPlayback("record");
+      }
+      function stopRecorder() {
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+      }
+      function finishRecording() {
+        var tot = totalDur();
+        releaseAwake();
+        resetPositions();
+        $("recordBtn").classList.remove("recording");
+        $("recordLabel").textContent = tot ? ("রেকর্ড শুরু করুন — মোট " + fmtTime(tot)) : "রেকর্ড শুরু করুন";
+        $("recordBtn").disabled = !leftVid.src;
+        $("progressWrap").classList.remove("show");
+        $("progressFill").style.width = "0%";
+        $("recBadge").classList.remove("show");
+
+        var type = (recorder && recorder.mimeType) || "video/webm";
+        var blob = new Blob(chunks, { type: type.split(";")[0] });
+        var isMp4 = type.indexOf("mp4") !== -1;
+        var ext = isMp4 ? "mp4" : "webm";
+        var fname = "short-video-" + Math.round(tot) + "s." + ext;
+        if (downloadURL) URL.revokeObjectURL(downloadURL);
+        downloadURL = URL.createObjectURL(blob);
+        var a = $("downloadLink");
+        a.href = downloadURL;
+        a.setAttribute("download", fname);
+        $("resultVid").src = downloadURL;
+        $("downloadMeta").textContent =
+          fmtTime(tot) + " · " + (isMp4 ? "MP4" : "WebM") + " ফরম্যাট · সাইজ " +
+          toBn((blob.size / 1048576).toFixed(1)) + " MB";
+        /* Saving on phones — iPhone is the hard case, and the previous
+           build failed there for two concrete reasons (both visible in
+           the user's screenshots):
+           1) The share button gated navigator.share() behind
+              navigator.canShare({files}). In in-app webviews canShare
+              routinely answers false for files even when share() itself
+              would open the sheet, so the tap silently fell through to
+              the download link — which runs into reason 2.
+           2) The recorded file lives at a blob: URL owned by this
+              page's sandboxed frame. iOS refuses to load that URL as a
+              top-level page (tapping "open separately" lands on the
+              broken-player page on the frame's own domain), and in-app
+              browsers ignore <a download> on blob URLs entirely. There
+              is NO working iOS route via navigation or download attrs.
+           The one route iOS does support from a web page is the system
+           share sheet with the actual File attached (Save Video / Save
+           to Files). So now: navigator.share({files}) is called
+           DIRECTLY on tap — never gated on canShare — and on iPhone
+           every save control (share button AND the download link) is
+           routed to that same share attempt instead of the dead blob
+           navigation, and the separate-page link is hidden there. */
+        $("openLink").href = downloadURL;
+        var shareBtn = $("shareBtn");
+        shareBtn.style.display = "none";
+        shareBtn.onclick = null;
+        a.onclick = null;
+        var shareFile = null;
+        try { shareFile = new File([blob], fname, { type: blob.type }); } catch (e) { shareFile = null; }
+        var ua = navigator.userAgent || "";
+        var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        var isAndroid = /android/i.test(ua);
+        function fallbackSave() {
+          if (isIOS) {
+            setStatus("এই অ্যাপের ব্রাউজার শেয়ার মেনু খুলতে দিচ্ছে না। শেষ উপায়: এই পেজটা Safari ব্রাউজারে খুলে আবার রেকর্ড করুন — Safari-তে সবুজ বাটন থেকেই 'Save Video' দিয়ে গ্যালারিতে সেভ হবে।", "err");
+            return;
+          }
+          try { $("downloadLink").click(); } catch (e) {}
+          setStatus("শেয়ার দিয়ে সেভ হয়নি — ডাউনলোড বাটনটা চেষ্টা করুন।", "err");
+        }
+        function tryShare() {
+          if (!shareFile || !navigator.share) { fallbackSave(); return; }
+          var p;
+          try { p = navigator.share({ files: [shareFile], title: fname }); }
+          catch (e) { fallbackSave(); return; }
+          Promise.resolve(p).then(function () {
+            setStatus("শেয়ার মেনু খুলেছে — সেখান থেকে 'Save Video' বাছুন (না থাকলে 'Save to Files')।", "ok");
+          }, function (err) {
+            if (err && err.name === "AbortError") return; /* user closed the sheet — not an error */
+            fallbackSave();
+          });
+        }
+        if (navigator.share) {
+          shareBtn.style.display = "flex";
+          shareBtn.onclick = tryShare;
+        }
+        if (isIOS) {
+          /* On iPhone the download anchor would navigate away to the
+             dead blob page and lose the tool state — send it to the
+             share sheet instead. The separate-page link lands on that
+             same dead page inside the app browser, so hide it there. */
+          a.onclick = function (ev) { ev.preventDefault(); tryShare(); };
+          $("openLink").style.display = "none";
+          $("saveHelp").textContent = "iPhone-এ সেভ: সবুজ 'ভিডিও সেভ করুন' বাটনে চাপ দিন → শেয়ার মেনু থেকে 'Save Video' বাছুন (না থাকলে 'Save to Files')। ডাউনলোড বাটনটাও একই শেয়ার মেনুই খুলবে।";
+        } else if (isAndroid) {
+          $("saveHelp").textContent = "Android-এ সেভ: সবুজ 'ভিডিও সেভ করুন' বাটন (শেয়ার) অথবা ডাউনলোড বাটন ব্যবহার করুন। কোনোটাতেই না হলে উপরের ভিডিওটায় লম্বা চাপ (long-press) দিয়ে 'Download video' বাছুন।";
+        } else {
+          $("saveHelp").textContent = "ডাউনলোড বাটনে চাপ দিলেই ভিডিওটা সেভ হয়ে যাবে। ফোন থেকে খুললে সবুজ 'ভিডিও সেভ করুন' বাটনটা (শেয়ার) ব্যবহার করুন।";
+        }
+        $("downloadCard").classList.add("show");
+        $("downloadCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        state._doneOnce = true;
+        setStatus("ভিডিও তৈরি হয়ে গেছে! নিচের বাটনগুলো থেকে সেভ করুন।", "ok");
+      }
+
+      updateTotals();
+      updateRecordState();
+      if (!window.MediaRecorder) {
+        $("recordBtn").disabled = true;
+        setStatus("এই ব্রাউজারে রেকর্ড সাপোর্ট নেই — Chrome বা Edge দিয়ে খুলুন।", "err");
+      }
+    </script>
+  </body>
+</html>
